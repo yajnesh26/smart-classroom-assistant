@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 # Create your models here.
 class Student(models.Model):
@@ -16,3 +17,11 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student.name} - {self.status}"
+    
+class AttendanceSession(models.Model):
+    session_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.session_id)
