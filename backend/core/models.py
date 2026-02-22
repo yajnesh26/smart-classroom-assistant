@@ -25,3 +25,13 @@ class AttendanceSession(models.Model):
 
     def __str__(self):
         return str(self.session_id)
+
+class Timetable(models.Model):
+    subject = models.CharField(max_length=100)
+    day_of_week = models.CharField(max_length=10)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    classroom = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.subject} ({self.day_of_week})"
