@@ -1,7 +1,10 @@
 from django.contrib import admin
-from .models import Student, Attendance, AttendanceSession
+from .models import Student, Attendance
+from .models import AttendanceSession
+from .models import Timetable
 
 # Register your models here.
 admin.site.register(Student)
 admin.site.register(Attendance)
 admin.site.register(AttendanceSession)
+admin.site.register(Timetable)
