@@ -9,6 +9,8 @@ from datetime import timedelta
 from .models import AttendanceSession
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from .models import Timetable
+from .serializers import TimetableSerializer
 
 # Create your views here.
 class StudentViewSet(viewsets.ModelViewSet):
@@ -55,3 +57,7 @@ def scan_qr(request):
     
     except AttendanceSession.DoesNotExist:
         return Response({"error": "Invalid session"}, status=400)
+    
+class TimetableViewSet(viewsets.ModelViewSet):
+    queryset = Timetable.objects.all()
+    serializer_class = TimetableSerializer
