@@ -7,6 +7,10 @@ class Student(models.Model):
     email = models.EmailField(unique=True)
     usn = models.CharField(max_length=20, unique=True)
 
+    interests = models.TextField(blank=True)
+    weak_subjects = models.TextField(blank=True)
+    career_goal = models.CharField(max_length=200, blank=True)
+
     def __str__(self):
         return self.name
     
