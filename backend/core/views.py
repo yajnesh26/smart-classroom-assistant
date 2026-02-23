@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from .models import Timetable
 from .serializers import TimetableSerializer
 from datetime import datetime
+from .models import Task
 
 # Create your views here.
 class StudentViewSet(viewsets.ModelViewSet):
@@ -79,3 +80,31 @@ def current_class(request):
             })
         
     return Response({"message": "Free period"})
+
+@api_view(['GET'])
+def recommend_tasks(request, student_id):
+    student = Student.objects.get(id=student_id)
+    tasks = Task.objects.all()
+
+    recommendations = []
+
+    for task in tasks:
+        score = 0
+
+        if student.interests and task.category.lower() in student.interests.lower():
+            score += 2
+
+        if student.weak_subjects and task.category.lower() in student.weak_subjects.lower():
+            score += 3
+
+        if student.career_goal and task.category.lower() in student.career_goal.lower():
+            score += 1
+
+        if score > 0:
+            recommendations.append((task.title, score))
+
+    recommendations.sort(key=lambda x: x[1], reverse=True)
+
+    return Response({
+        "recommendations": [r[0] for r in recommendations]
+    })
