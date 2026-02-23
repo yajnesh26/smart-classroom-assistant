@@ -39,3 +39,11 @@ class Timetable(models.Model):
 
     def __str__(self):
         return f"{self.subject} ({self.day_of_week})"
+
+class Task(models.Model):
+    title = models.CharField(max_length=200)
+    category = models.CharField(max_length=100)
+    estimated_minutes = models.IntegerField()
+
+    def __str__(self):
+        return self.title
