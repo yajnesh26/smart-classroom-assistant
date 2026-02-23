@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Timetable
 from .serializers import TimetableSerializer
+from datetime import datetime
 
 # Create your views here.
 class StudentViewSet(viewsets.ModelViewSet):
@@ -61,3 +62,20 @@ def scan_qr(request):
 class TimetableViewSet(viewsets.ModelViewSet):
     queryset = Timetable.objects.all()
     serializer_class = TimetableSerializer
+
+@api_view(['GET'])
+def current_class(request):
+    now = datetime.now()
+    day = now.strftime("%A")
+    time_now = now.time()
+
+    classes = Timetable.objects.filter(day_of_week=day)
+
+    for c in classes:
+        if c.start_time <= time_now <= c.end_time:
+            return Response({
+                "current_class": c.subject,
+                "room": c.classroom
+            })
+        
+    return Response({"message": "Free period"})
