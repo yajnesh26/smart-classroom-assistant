@@ -108,3 +108,25 @@ def recommend_tasks(request, student_id):
     return Response({
         "recommendations": [r[0] for r in recommendations]
     })
+
+@api_view(['GET'])
+def generate_daily_routine(request, student_id):
+    student = Student.objects.get(id=student_id)
+
+    # today = datetime.now().strftime("%A")
+    today = "Monday"
+    classes = Timetable.objects.filter(day_of_week__iexact=today).order_by('start_time')
+
+    routine = []
+
+    for c in classes:
+        routine.append({
+            "subject": c.subject,
+            "time": f"{c.start_time} - {c.end_time}",
+            "room": c.classroom
+        })
+
+    return Response({
+        "total_classes": len(routine),
+        "routine": routine
+    })

@@ -5,6 +5,7 @@ from .views import generate_qr, scan_qr
 from .views import TimetableViewSet
 from .views import current_class
 from .views import recommend_tasks
+from .views import generate_daily_routine
 
 router = DefaultRouter()
 router.register(r'students', StudentViewSet)
@@ -17,4 +18,5 @@ urlpatterns += [
     path('scan/', scan_qr),
     path('current-class/', current_class),
     path('recommend/<int:student_id>/', recommend_tasks),
+    path('daily-routine/<int:student_id>/', generate_daily_routine),
 ]
