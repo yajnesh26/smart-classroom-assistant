@@ -111,22 +111,53 @@ def recommend_tasks(request, student_id):
 
 @api_view(['GET'])
 def generate_daily_routine(request, student_id):
+    day = request.GET.get('day')
+
+    if day:
+        today = day
+    else:
+        today = datetime.now().strftime("%A")
+
     student = Student.objects.get(id=student_id)
 
-    # today = datetime.now().strftime("%A")
-    today = "Monday"
     classes = Timetable.objects.filter(day_of_week__iexact=today).order_by('start_time')
+    tasks = Task.objects.all()
 
     routine = []
 
+    def pick_task():
+        interests = student.interests.lower().split(',')
+        interests = [i.strip() for i in interests]
+
+        weak = student.weak_subjects.lower().split(',') if student.weak_subjects else []
+        weak = [w.strip() for w in weak]
+
+        for task in tasks:
+            category = task.category.lower().strip()
+
+            if category in interests or category in weak:
+                return task.title
+            
+        return "Self study"
+    
+    last_end = None
+
     for c in classes:
-        routine.append({
-            "subject": c.subject,
-            "time": f"{c.start_time} - {c.end_time}",
-            "room": c.classroom
-        })
+        if c.subject.lower() == "free":
+            routine.append({
+                "time": f"{c.start_time} - {c.end_time}",
+                "activity": pick_task()
+            })
+        
+        else:
+            routine.append({
+                "time": f"{c.start_time} - {c.end_time}",
+                "activity": f"Class: {c.subject}"
+            })
+
+        last_end = c.end_time
 
     return Response({
-        "total_classes": len(routine),
+        "day": today,
         "routine": routine
     })
