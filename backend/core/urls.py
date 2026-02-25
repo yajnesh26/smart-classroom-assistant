@@ -6,6 +6,7 @@ from .views import TimetableViewSet
 from .views import current_class
 from .views import recommend_tasks
 from .views import generate_daily_routine
+from .views import face_attendance
 
 router = DefaultRouter()
 router.register(r'students', StudentViewSet)
@@ -19,4 +20,5 @@ urlpatterns += [
     path('current-class/', current_class),
     path('recommend/<int:student_id>/', recommend_tasks),
     path('daily-routine/<int:student_id>/', generate_daily_routine),
+    path('face-attendance/', face_attendance),
 ]

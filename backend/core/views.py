@@ -13,6 +13,10 @@ from .models import Timetable
 from .serializers import TimetableSerializer
 from datetime import datetime
 from .models import Task
+import cv2
+import face_recognition
+import numpy as np
+import os
 
 # Create your views here.
 class StudentViewSet(viewsets.ModelViewSet):
@@ -161,3 +165,57 @@ def generate_daily_routine(request, student_id):
         "day": today,
         "routine": routine
     })
+
+@api_view(['GET'])
+def face_attendance(request):
+    video = cv2.VideoCapture(0)
+
+    known_encodings = []
+    known_ids = []
+
+    faces_dir = "faces"
+
+    for file in os.listdir(faces_dir):
+        img = face_recognition.load_image_file(os.path.join(faces_dir, file))
+        encoding = face_recognition.face_encodings(img)[0]
+
+        student_id = int(file.split("_")[1].split(".")[0])
+
+        known_encodings.append(encoding)
+        known_ids.append(student_id)
+
+    while True:
+        ret, frame = video.read()
+
+        rgb = frame[:, :, ::-1]
+        face_locations = face_recognition.face_locations(rgb)
+        encodings = face_recognition.face_encodings(rgb, face_locations)
+
+        for encoding in encodings:
+            matches = face_recognition.compare_faces(known_encodings, encoding)
+
+            if True in matches:
+                index = matches.index(True)
+                student_id = known_ids[index]
+
+                student = Student.objects.get(id=student_id)
+
+                Attendance.objects.create(
+                    student = student,
+                    status = "Present"
+                )
+
+                video.release()
+                cv2.destroyAllWindows()
+
+                return Response({"message": f"{student.name} marked present"})
+            
+            cv2.imshow("Face Attendance", frame)
+
+            if cv2.waitKey(1) == 27:
+                break
+
+        video.release()
+        cv2.destroyAllWindows()
+
+        return Response({"message": "No face recognised"})
