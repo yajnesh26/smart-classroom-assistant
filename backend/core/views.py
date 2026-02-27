@@ -17,6 +17,7 @@ import cv2
 import face_recognition
 import numpy as np
 import os
+from django.conf import settings
 
 # Create your views here.
 class StudentViewSet(viewsets.ModelViewSet):
@@ -173,23 +174,36 @@ def face_attendance(request):
     known_encodings = []
     known_ids = []
 
-    faces_dir = "faces"
+    faces_dir = os.path.join(settings.BASE_DIR.parent, "faces")
 
     for file in os.listdir(faces_dir):
-        img = face_recognition.load_image_file(os.path.join(faces_dir, file))
-        encoding = face_recognition.face_encodings(img)[0]
+        img_path = os.path.join(faces_dir, file)
+        img = face_recognition.load_image_file(img_path)
+
+        face_enc = face_recognition.face_encodings(img)
+
+        if len(face_enc) == 0:
+            print(f"No face detected in {file}")
+            continue
 
         student_id = int(file.split("_")[1].split(".")[0])
 
-        known_encodings.append(encoding)
+        known_encodings.append(face_enc[0])
         known_ids.append(student_id)
+
+        if len(known_encodings) == 0:
+            return Response({"error": "No valid faces found in faces folder"})
 
     while True:
         ret, frame = video.read()
 
-        rgb = frame[:, :, ::-1]
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         face_locations = face_recognition.face_locations(rgb)
         encodings = face_recognition.face_encodings(rgb, face_locations)
+
+        if len(encodings) == 0:
+            cv2.imshow("Face Attendance", frame)
+            continue
 
         for encoding in encodings:
             matches = face_recognition.compare_faces(known_encodings, encoding)
