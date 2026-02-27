@@ -167,8 +167,7 @@ def generate_daily_routine(request, student_id):
         "routine": routine
     })
 
-@api_view(['GET'])
-def face_attendance(request):
+def run_face_recognition():
     video = cv2.VideoCapture(0)
 
     known_encodings = []
@@ -228,8 +227,15 @@ def face_attendance(request):
                     status = "Present"
                 )
                 marked = True
+
+                # Show confirmation text
+                cv2.putText(frame, f"{student.name} Attendance marked", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)
             
         cv2.imshow("Face Attendance", frame)
+
+        if marked:
+            cv2.waitKey(2000)
+            break
 
         # Press Q to close window
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -242,3 +248,11 @@ def face_attendance(request):
         return Response({"message": f"{detected_name} marked present"})
     else:
         return Response({"message": "No face recognised"})
+
+@api_view(['GET'])
+def face_attendance(request):
+    import threading
+
+    threading.Thread(target=run_face_recognition).start()
+
+    return Response({"message": "Face Attendance Started"})
