@@ -191,45 +191,54 @@ def face_attendance(request):
         known_encodings.append(face_enc[0])
         known_ids.append(student_id)
 
-        if len(known_encodings) == 0:
-            return Response({"error": "No valid faces found in faces folder"})
+    if len(known_encodings) == 0:
+        return Response({"error": "No valid faces found in faces folder"})
+    
+    marked = False
+    detected_name = ""
 
     while True:
         ret, frame = video.read()
+        if not ret:
+            break
 
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         face_locations = face_recognition.face_locations(rgb)
         encodings = face_recognition.face_encodings(rgb, face_locations)
 
-        if len(encodings) == 0:
-            cv2.imshow("Face Attendance", frame)
-            continue
-
-        for encoding in encodings:
+        for (top, right, bottom, left), encoding in zip(face_locations, encodings):
             matches = face_recognition.compare_faces(known_encodings, encoding)
 
             if True in matches:
                 index = matches.index(True)
                 student_id = known_ids[index]
-
                 student = Student.objects.get(id=student_id)
 
-                Attendance.objects.create(
+                detected_name = student.name
+
+                # Draw face box
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+
+                # Show name above face
+                cv2.putText(frame, detected_name, (left, top-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
+                if not marked:
+                    Attendance.objects.create(
                     student = student,
                     status = "Present"
                 )
-
-                video.release()
-                cv2.destroyAllWindows()
-
-                return Response({"message": f"{student.name} marked present"})
+                marked = True
             
-            cv2.imshow("Face Attendance", frame)
+        cv2.imshow("Face Attendance", frame)
 
-            if cv2.waitKey(1) == 27:
-                break
+        # Press Q to close window
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-        video.release()
-        cv2.destroyAllWindows()
+    video.release()
+    cv2.destroyAllWindows()
 
+    if marked:
+        return Response({"message": f"{detected_name} marked present"})
+    else:
         return Response({"message": "No face recognised"})
