@@ -16,6 +16,7 @@ class Student(models.Model):
     
 class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=100, null=True, blank=True)
     date = models.DateField(auto_now_add=True)
     status = models.CharField(max_length=10)
 
