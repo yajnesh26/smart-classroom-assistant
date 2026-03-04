@@ -14,7 +14,7 @@ def check_and_mark_attendance():
     for c in classes:
         if c.start_time <= current_time <= c.end_time:
             print(f"Class running: {c.subject}")
-            threading.Thread(target=run_face_recognition).start()
+            threading.Thread(target=run_face_recognition, args=(c.subject,)).start()
             break
 
 def start_scheduler():

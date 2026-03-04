@@ -167,7 +167,22 @@ def generate_daily_routine(request, student_id):
         "routine": routine
     })
 
-def run_face_recognition():
+def run_face_recognition(subject=None):
+    from datetime import datetime
+    from .models import Timetable
+
+    # Auto-detect subject if not provided
+    if subject is None:
+        now = datetime.now()
+        day = now.strftime("%A")
+        current_time = now.time()
+
+        classes = Timetable.objects.filter(day_of_week__iexact=day)
+
+        for c in classes:
+            if c.start_time <= current_time <= c.end_time:
+                subject = c.subject
+                break
     video = cv2.VideoCapture(0)
 
     known_encodings = []
@@ -224,12 +239,17 @@ def run_face_recognition():
                 if not marked:
                     Attendance.objects.create(
                     student = student,
+                    subject = subject,
                     status = "Present"
                 )
                 marked = True
 
                 # Show confirmation text
                 cv2.putText(frame, f"{student.name} Attendance marked", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)
+
+                cv2.putText(frame, f"Subject: {subject}",
+                            (left, bottom+30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
             
         cv2.imshow("Face Attendance", frame)
 
