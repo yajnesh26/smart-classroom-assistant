@@ -183,6 +183,10 @@ def run_face_recognition(subject=None):
             if c.start_time <= current_time <= c.end_time:
                 subject = c.subject
                 break
+
+        if subject is None:
+            subject = "No Scheduled Class"
+            
     video = cv2.VideoCapture(0)
 
     known_encodings = []
@@ -238,11 +242,14 @@ def run_face_recognition(subject=None):
 
                 if not marked:
                     Attendance.objects.create(
-                    student = student,
-                    subject = subject,
-                    status = "Present"
-                )
-                marked = True
+                        student = student,
+                        subject = subject,
+                        status = "Present"
+                    )
+                    marked = True
+
+                if subject is None:
+                    subject = "No Scheduled Class"
 
                 # Show confirmation text
                 cv2.putText(frame, f"{student.name} Attendance marked", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)
