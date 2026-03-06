@@ -267,7 +267,26 @@ def run_face_recognition(subject=None):
 @api_view(['GET'])
 def face_attendance(request, subject):
     import threading
+    from datetime import datetime
+    from .models import Timetable
 
-    threading.Thread(target=run_face_recognition, args=(subject,)).start()
+    now = datetime.now()
+    day = now.strftime("%A")
+    current_time = now.time()
 
-    return Response({"message": f"Face Attendance Started for {subject}"})
+    # Check if subject is scheduled now
+    classes = Timetable.objects.filter(
+        subject__iexact = subject,
+        day_of_week__iexact = day
+    )
+
+    for c in classes:
+        if c.start_time <= current_time <= c.end_time:
+            threading.Thread(target=run_face_recognition, args=(subject,)).start()
+            return Response({
+                "message": f"Face Attendance Started for {subject}"
+            })
+        
+    return Response({
+        "error": f"{subject} is not scheduled at this time"
+    })
