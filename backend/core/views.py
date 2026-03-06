@@ -18,6 +18,7 @@ import face_recognition
 import numpy as np
 import os
 from django.conf import settings
+from .attendance_state import attendance_running
 
 # Create your views here.
 class StudentViewSet(viewsets.ModelViewSet):
@@ -170,22 +171,6 @@ def generate_daily_routine(request, student_id):
 def run_face_recognition(subject=None):
     from datetime import datetime
     from .models import Timetable
-
-    # Auto-detect subject if not provided
-    if subject is None:
-        now = datetime.now()
-        day = now.strftime("%A")
-        current_time = now.time()
-
-        classes = Timetable.objects.filter(day_of_week__iexact=day)
-
-        for c in classes:
-            if c.start_time <= current_time <= c.end_time:
-                subject = c.subject
-                break
-
-        if subject is None:
-            subject = "No Scheduled Class"
             
     video = cv2.VideoCapture(0)
 
@@ -271,15 +256,18 @@ def run_face_recognition(subject=None):
     video.release()
     cv2.destroyAllWindows()
 
+    from .attendance_state import attendance_running
+    attendance_running = False
+
     if marked:
         return Response({"message": f"{detected_name} marked present"})
     else:
         return Response({"message": "No face recognised"})
 
 @api_view(['GET'])
-def face_attendance(request):
+def face_attendance(request, subject):
     import threading
 
-    threading.Thread(target=run_face_recognition).start()
+    threading.Thread(target=run_face_recognition, args=(subject,)).start()
 
-    return Response({"message": "Face Attendance Started"})
+    return Response({"message": f"Face Attendance Started for {subject}"})

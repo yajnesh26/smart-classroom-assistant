@@ -2,9 +2,17 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 from .models import Timetable
 from .views import run_face_recognition
+from .attendance_state import attendance_running
 import threading
 
+attendance_running = False
+
 def check_and_mark_attendance():
+    global attendance_running
+
+    if attendance_running:
+        return
+    
     now = datetime.now()
     day = now.strftime("%A")
     current_time = now.time()

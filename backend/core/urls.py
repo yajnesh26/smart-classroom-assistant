@@ -20,5 +20,5 @@ urlpatterns += [
     path('current-class/', current_class),
     path('recommend/<int:student_id>/', recommend_tasks),
     path('daily-routine/<int:student_id>/', generate_daily_routine),
-    path('face-attendance/', face_attendance),
+    path('face-attendance/<str:subject>/', face_attendance),
 ]

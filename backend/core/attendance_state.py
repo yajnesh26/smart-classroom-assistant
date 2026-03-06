@@ -1,0 +1,1 @@
+attendance_running = False
